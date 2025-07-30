@@ -1,0 +1,7 @@
+data-lineage-catalog/jsconfig.json
+data-lineage-catalog/node_modules
+data-lineage-catalog/.env
+data-lineage-catalog/.vscode
+data-lineage-catalog/.DS_Store
+data-lineage-catalog/visualizations
+

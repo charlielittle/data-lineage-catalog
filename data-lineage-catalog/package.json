@@ -1,0 +1,56 @@
+{
+  "name": "data-lineage-catalog",
+  "version": "2.0.0",
+  "description": "Enterprise Data Lineage Catalog with MongoDB backend",
+  "main": "src/app/Application.js",
+  "scripts": {
+    "start": "node src/cli/index.js start-server",
+    "start:dev": "nodemon src/cli/index.js start-server --load-data",
+    "cli": "node src/cli/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "docs": "jsdoc -c jsdoc.conf.json",
+    "migrate": "node src/cli/index.js init",
+    "seed": "node src/cli/index.js load-data --clear",
+    "quality-report": "node src/cli/index.js quality-report",
+    "validate-schema": "node src/cli/index.js validate-schema"
+  },
+  "keywords": [
+    "data-lineage",
+    "data-catalog",
+    "mongodb",
+    "data-governance",
+    "metadata-management"
+  ],
+  "author": "Data Engineering Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "jest": "^30.0.5",
+    "joi": "^17.11.0",
+    "mongodb": "^6.3.0",
+    "morgan": "^1.10.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "jsdoc": "^4.0.2",
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/data-lineage-catalog.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/data-lineage-catalog/issues"
+  },
+  "homepage": "https://github.com/your-org/data-lineage-catalog#readme"
+}

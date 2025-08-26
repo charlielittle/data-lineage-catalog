@@ -19,7 +19,11 @@ class BaseRepository {
   }
 
   async findAll(filter = {}, options = {}) {
-    return await this.collection.find(filter, options).toArray();
+    let limit = 0;
+    if (options.limit) {
+      limit = options.limit;
+    }
+    return await this.collection.find(filter).limit(limit).toArray();
   }
 
   async findOne(filter, options = {}) {

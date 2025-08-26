@@ -3,6 +3,26 @@ const { Relationship } = require('../models/Relationship');
 
 // src/repositories/RelationshipRepository.js
 class RelationshipRepository extends BaseRepository {
+  async findAll(filter = {}, options = {}) {
+    let limit = 0;
+    if (options.limit) {
+      limit = options.limit;
+    }
+    const cursor = this.collection.find(filter).limit(limit);
+    if (options.onlyIds) {
+      const ids = [];
+      for await (const doc of cursor) {
+        ids.push(doc.relationshipId);
+      }
+      return ids;
+    } else {
+      const relationships = [];
+      for await (const doc of cursor) {
+        relationships.push(Relationship.fromDocument(doc));
+      }
+      return relationships;
+    }
+  }
   constructor(db) {
     super(db, 'relationships');
   }

@@ -163,6 +163,58 @@ npm run cli generate-viz
 npm run cli generate-viz node1 node2 node3
 ```
 
+### Large-Scale Data Generation
+
+The application includes enterprise-scale data generation capabilities that create realistic datasets for performance testing and MongoDB schema validation. These generators implement research-backed patterns from enterprise data lineage systems, creating datasets that mirror real-world complexity and scale.
+
+Generate an enterprise-scale dataset with 150,000 nodes using realistic architectural patterns.
+
+```bash
+npm run cli generate-large-scale 150000
+```
+
+This command creates a multi-layered data architecture following the medallion pattern used in modern data platforms. The generator distributes nodes across raw data sources, staging transformations, integration operations, presentation layers, and analytics models using enterprise ratios discovered through industry research.
+
+Create a smaller demonstration dataset suitable for development and testing scenarios.
+
+```bash
+npm run generate-demo
+```
+
+Generate a production-scale dataset with half a million nodes for comprehensive performance testing.
+
+```bash
+npm run generate-enterprise
+```
+
+The large-scale generator includes several advanced features that make it valuable for understanding enterprise data lineage patterns. Each generated node includes realistic transformation code that reflects actual data processing logic used in business systems. The relationships between nodes follow probability distributions based on real enterprise architectures, creating authentic data flow patterns.
+
+Run comprehensive performance testing across multiple dataset sizes to understand MongoDB scaling characteristics.
+
+```bash
+npm run performance-test
+```
+
+This command executes the generator at three different scales, measuring generation time, memory usage, and relationship complexity. The testing provides insights into how the MongoDB schema performs as data volume increases, helping you understand scaling considerations for production deployments.
+
+### Advanced Generation Options
+
+The large-scale generator supports various options that allow you to customize the generated dataset for specific testing scenarios.
+
+Control memory usage during generation by adjusting the processing chunk size for very large datasets.
+
+```bash
+npm run cli generate-large-scale 500000 --chunk-size 5000 --clear
+```
+
+Skip the analytics layer generation if you want to focus testing on operational data flows without machine learning components.
+
+```bash
+npm run cli generate-large-scale 100000 --skip-analytics --clear
+```
+
+The chunk size parameter becomes particularly important when generating datasets with hundreds of thousands of nodes, as it controls memory usage and provides progress feedback during the generation process. Smaller chunk sizes use less memory but may increase generation time, while larger chunks process faster but require more available RAM.
+
 ### API Examples
 
 The sample API demonstrates common lineage query patterns and response structures for MongoDB-based lineage systems.
@@ -182,7 +234,7 @@ curl http://localhost:3000/api/lineage/node/customer_id?direction=both&maxDepth=
 Test impact analysis endpoints that demonstrate downstream dependency calculation.
 
 ```bash
-curl http://localhost:3000/api/lineage/impact/customer_id?changeType=schema_change
+curl http://localhost:3000/api/lineage/impact/order_line_quantity?changeType=schema_change
 ```
 
 Review quality assessment capabilities that show how metadata can support data governance workflows.
@@ -198,8 +250,10 @@ Access sample visualization interfaces that demonstrate presentation options for
 http://localhost:3000/api/visualization/html
 
 # Focused lineage demonstration
-http://localhost:3000/api/visualization/html/focus/product_performance_score?depth=3&direction=both
+http://localhost:3000/api/visualization/html/focus/product_performance_score?depth=5&direction=both
 ```
+
+When testing with large-scale generated datasets, these API endpoints provide insight into MongoDB query performance characteristics. The path-finding operations demonstrate how the document schema handles graph traversal queries, while impact analysis shows aggregation pipeline performance across complex relationship networks. Quality summary endpoints reveal how metadata queries scale with dataset size, providing practical experience with production-scale data lineage system performance.
 
 ## Key Demonstration Areas
 
@@ -219,6 +273,12 @@ The schema design shows how to incorporate technical metadata, business metadata
 
 Multiple output formats demonstrate how lineage information can be transformed for different audiences, including technical diagrams for developers and interactive interfaces for business stakeholders.
 
+### Enterprise-Scale Performance Testing
+
+The large-scale generator enables comprehensive testing of MongoDB performance characteristics under realistic enterprise workloads. By generating datasets ranging from thousands to millions of nodes, you can observe how query response times, memory usage, and indexing strategies perform as data volume increases. This testing reveals practical scaling thresholds and helps validate schema design decisions before production deployment.
+
+The performance testing framework creates datasets that follow enterprise architectural patterns, including realistic relationship densities, transformation depth, and metadata complexity. This approach provides more accurate performance insights than simple synthetic data because it reflects the query patterns and data distributions found in actual enterprise data lineage systems.
+
 ## Development
 
 ### Testing the Schema Implementation
@@ -230,6 +290,28 @@ npm test                # Run all tests
 npm run test:watch      # Watch mode for development
 npm run test:coverage   # Generate coverage reports
 ```
+
+### Performance and Scale Testing
+
+The application includes comprehensive performance testing capabilities that help you understand how the MongoDB lineage schema behaves under different load conditions. These tests provide practical experience with the scaling characteristics of document-based lineage systems.
+
+Run performance tests across multiple dataset sizes to observe scaling behavior and identify potential bottlenecks.
+
+```bash
+npm run performance-test
+```
+
+This command generates datasets at three different scales and measures key performance metrics including generation time, memory usage, query response times, and relationship complexity statistics. The testing reveals how MongoDB aggregation pipelines perform as data volume increases and helps validate indexing strategies under realistic workloads.
+
+Generate custom-sized datasets for specific performance testing scenarios.
+
+```bash
+npm run cli generate-large-scale [size] [options]
+```
+
+The large-scale generator supports datasets ranging from thousands of nodes for development testing to millions of nodes for enterprise-scale validation. Each generated dataset maintains realistic enterprise architecture patterns, ensuring that performance testing reflects actual production scenarios rather than artificial synthetic workloads.
+
+Monitor query performance characteristics by examining the generated metadata that includes relationship ratios, average path depths, and branching factors. These metrics help you understand the structural complexity of your test data and correlate it with query performance results.
 
 ### Code Quality
 
@@ -248,11 +330,23 @@ Generate technical documentation for the schema design and implementation patter
 npm run docs          # Generate JSDoc documentation
 ```
 
+## Performance Characteristics and Scaling Insights
+
+Understanding how the MongoDB lineage schema performs at different scales provides valuable insights for production system design. The sample application includes performance testing that reveals practical scaling thresholds and optimization opportunities.
+
+At smaller scales with fewer than 10,000 nodes, the schema performs well with minimal indexing requirements. Simple queries execute in milliseconds, and impact analysis completes quickly even with deep traversal requirements. Memory usage remains low, and the embedded relationship approach works efficiently for most operations.
+
+As datasets grow to 50,000-100,000 nodes, indexing strategy becomes critical for maintaining query performance. Compound indexes on relationship fields and aggregation pipeline optimization become necessary to prevent query response time degradation. The testing framework helps identify these scaling transition points through systematic measurement across different dataset sizes.
+
+Beyond 100,000 nodes, the performance characteristics reveal the importance of proper MongoDB configuration including connection pooling, read preferences, and aggregation pipeline stages ordering. The large-scale generator creates datasets that stress these configuration aspects, providing practical experience with enterprise-scale MongoDB tuning requirements.
+
 ## Sample Data Structure
 
 This application demonstrates a MongoDB schema design that separates nodes and relationships into distinct collections while maintaining referential integrity through document references. The Node documents contain comprehensive metadata including technical specifications, business context, and quality metrics. The Relationship documents model the connections between nodes with transformation details, confidence levels, and impact assessments.
 
 The schema design emphasizes query performance for common lineage operations through strategic indexing on frequently accessed fields such as node identifiers, relationship types, and status indicators. The document structure supports both simple lineage traversal and complex analytical queries while maintaining flexibility for different types of data sources and transformation processes.
+
+The large-scale generator extends this foundation by creating datasets that follow enterprise architectural patterns including medallion layer distribution, realistic relationship densities, and authentic transformation complexity. This approach enables testing of the schema design under conditions that mirror actual production data lineage environments.
 
 ## Contributing
 

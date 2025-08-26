@@ -26,7 +26,7 @@ class Application {
       
       // Initialize database
       await this.initializeDatabase();
-      
+
       // Initialize repositories
       this.initializeRepositories();
       
@@ -58,6 +58,7 @@ class Application {
     await this.schemaManager.setupCollections();
     
     console.log('✓ Database initialized');
+    console.log(`Database config: ${db}`);
   }
 
   initializeRepositories() {

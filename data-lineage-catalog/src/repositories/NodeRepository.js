@@ -1,15 +1,32 @@
 // src/repositories/NodeRepository.js
 const { BaseRepository } = require('./BaseRepository');
 const { Node } = require('../models/Node');
+const { MongoBulkWriteError } = require('mongodb');
 
 class NodeRepository extends BaseRepository {
   constructor(db) {
     super(db, 'nodes');
   }
 
-  async findAll( filter={}) {
-    const docs = await this.collection.find(filter).toArray();
-    return docs.map(doc => Node.fromDocument(doc));
+  async findAll(filter = {}, options = {}) {
+    let limit = 0;
+    if (options.limit) {
+      limit = options.limit;
+    }
+    const cursor = this.collection.find(filter).limit(limit);
+    if (options.onlyIds) {
+      const ids = [];
+      for await (const doc of cursor) {
+        ids.push(doc.nodeId);
+      }
+      return ids;
+    } else {
+      const nodes = [];
+      for await (const doc of cursor) {
+        nodes.push(Node.fromDocument(doc));
+      }
+      return nodes;
+    }
   }
 
   async findByNodeId(nodeId) {
@@ -119,7 +136,7 @@ class NodeRepository extends BaseRepository {
       { $set: document },
       { upsert: true }
     );
-    
+    console.log(`Upserted node with nodeId ${node.nodeId} result:`, result);
     return result;
   }
 
@@ -130,7 +147,18 @@ class NodeRepository extends BaseRepository {
       return doc;
     });
 
-    return await this.insertMany(documents);
+    try {
+      let results = await this.insertMany(documents);
+    } catch (error) {
+      if (error.code === 11000) {
+        console.log('Duplicate key error detected, attempting upsert for existing nodes...');
+        for (let node of nodes) {
+          await this.saveNode(node);
+        }
+      } else {
+        console.error('Error saving nodes:', error);
+      }
+    }
   }
 }
 

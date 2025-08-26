@@ -2,10 +2,85 @@
 // 10. CLI INTERFACE
 // =============================================================================
 
+
+
 // src/cli/index.js
 const { Application } = require('../app/Application'); // Adjust the path as needed
+const { GenerateLargeScaleCommand } = require('./commands/generateLargeScale');
 
 class CLI {
+
+  async runLineageQueryPerformanceTest(args) {
+    // Usage: npm run cli lineage-query-performance-test [depth] [iterations] [concurrency]
+    const depth = parseInt(args[0]) || 5;
+    const iterations = parseInt(args[1]) || 10;
+    const concurrency = parseInt(args[2]) || 4;
+    const nodeRepository = this.app.getRepository('nodeRepository');
+    const lineageService = this.app.getService('lineageService');
+
+    // Get all nodeIds
+    const nodeIds = await nodeRepository.findAll({ status: 'active' }, { onlyIds: true });
+    if (nodeIds.length === 0) {
+      console.log('No nodes found for lineage query test.');
+      return;
+    }
+
+    let totalTime = 0;
+    let minTime = Number.POSITIVE_INFINITY;
+    let maxTime = 0;
+    let totalResults = 0;
+    const times = [];
+
+    console.log(`Running ${iterations} lineage queries (depth=${depth}, concurrency=${concurrency}) from ${nodeIds.length} active nodes...`);
+    const testStart = Date.now();
+
+    // Helper to run a single query
+    const runQuery = async (i) => {
+      const randomIndex = Math.floor(Math.random() * nodeIds.length);
+      const randomNodeId = nodeIds[randomIndex];
+      const start = Date.now();
+      const lineage = await lineageService.getNodeLineage(randomNodeId, 'both', depth);
+      const end = Date.now();
+      const relCount = (lineage.upstreamRelationships?.length || 0) + (lineage.downstreamRelationships?.length || 0);
+      const elapsed = end - start;
+      times[i] = elapsed;
+      totalTime += elapsed;
+      minTime = Math.min(minTime, elapsed);
+      maxTime = Math.max(maxTime, elapsed);
+      totalResults += relCount;
+      return { i, nodeId: randomNodeId, relCount, elapsed };
+    };
+
+    // Run queries in batches for concurrency
+    let completed = 0;
+    let batch = [];
+    let total_tests = iterations * concurrency // iterations per task
+    while (completed < total_tests ) {
+      batch = [];
+      for (let j = 0; j < concurrency && completed + j < total_tests; j++) {
+        batch.push(runQuery(completed + j));
+      }
+      const results = await Promise.all(batch);
+      results.forEach(r => {
+        console.log(`Iteration ${r.i + 1}: nodeId=${r.nodeId}, relationships=${r.relCount}, time=${(r.elapsed / 1000).toFixed(3)}s`);
+      });
+      completed += results.length;
+    }
+
+    const testEnd = Date.now();
+    const avgTime = totalTime / total_tests;
+    const queriesPerSec = total_tests / ((testEnd - testStart) / 1000);
+    console.log('\nLineage Query Performance Summary:');
+    console.log(`  Iterations: ${iterations}`);
+    console.log(`  Concurrency: ${concurrency}`);
+    console.log(`  Total relationships returned: ${totalResults}`);
+    console.log(`  Avg response time: ${(avgTime / 1000).toFixed(3)}s`);
+    console.log(`  Min response time: ${(minTime / 1000).toFixed(3)}s`);
+    console.log(`  Max response time: ${(maxTime / 1000).toFixed(3)}s`);
+    console.log(`  Queries/sec: ${queriesPerSec.toFixed(2)}`);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+
   constructor() {
     this.app = null;
     this.commands = {
@@ -16,6 +91,9 @@ class CLI {
       'quality-report': this.generateQualityReport.bind(this),
       'impact-analysis': this.runImpactAnalysis.bind(this),
       'validate-schema': this.validateSchema.bind(this),
+      'generate-large-scale': this.generateLargeScale.bind(this), // New command
+      'performance-test': this.runPerformanceTest.bind(this),     // New command
+      'lineage-query-performance-test': this.runLineageQueryPerformanceTest.bind(this), // New command
       'help': this.showHelp.bind(this)
     };
   }
@@ -149,6 +227,45 @@ class CLI {
     }
   }
 
+  async generateLargeScale(args) {
+    const command = new GenerateLargeScaleCommand(this.app);
+    await command.execute(args);
+  }
+
+  async runPerformanceTest(args) {
+    // Usage: npm run cli performance-test [write|read|both]
+    const mode = args[0] || 'both';
+    const testSizes = [10000, 50000, 150000];
+    const command = new GenerateLargeScaleCommand(this.app);
+    const nodeRepository = this.app.getRepository('nodeRepository');
+    const relationshipRepository = this.app.getRepository('relationshipRepository');
+
+    if (mode === 'write' || mode === 'both') {
+      console.log('📝 Running WRITE performance tests across multiple scales\n');
+      for (const size of testSizes) {
+        console.log(`Writing ${size.toLocaleString()} nodes:`);
+        const writeStart = Date.now();
+        await command.execute([size.toString(), '--clear']);
+        const writeEnd = Date.now();
+        console.log(`Write completed in ${(writeEnd - writeStart) / 1000}s`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+
+    if (mode === 'read' || mode === 'both') {
+      console.log('📖 Running READ performance tests across multiple scales\n');
+      for (const size of testSizes) {
+        console.log(`Reading lineage data for ${size.toLocaleString()} nodes (IDs only):`);
+        const readStart = Date.now();
+        const nodeIds = await nodeRepository.findAll({ status: 'active' }, { onlyIds: true, limit: size });
+        const relationshipIds = await relationshipRepository.findAll({ status: 'active' }, { onlyIds: true, limit: size });
+        const readEnd = Date.now();
+        console.log(`Read ${nodeIds.length} nodeIds and ${relationshipIds.length} relationshipIds in ${(readEnd - readStart) / 1000}s`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+  }
+
   showHelp() {
     console.log('\n📖 DATA LINEAGE CLI HELP');
     console.log('=' .repeat(50));
@@ -161,6 +278,8 @@ class CLI {
     console.log('  quality-report           Generate quality report');
     console.log('  impact-analysis <nodeId> Run impact analysis');
     console.log('  validate-schema          Validate database schema');
+    console.log('  generate-large-scale [size] [options] Generate enterprise-scale dataset');
+    console.log('  performance-test         Run performance tests at multiple scales');
     console.log('  help                     Show this help message');
     console.log('\nExamples:');
     console.log('  npm run cli load-data --clear');

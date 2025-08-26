@@ -16,11 +16,11 @@ class GraphVisualizer extends BaseVisualizer {
     // Get nodes and relationships
     const nodes = focusNodeIds 
       ? await this.nodeRepository.findByNodeIds(focusNodeIds)
-      : await this.nodeRepository.findAll({ status: 'active' });
+      : await this.nodeRepository.findAll({ status: 'active' }, { limit: 10000 });
     
     const relationships = focusNodeIds
       ? await this.relationshipRepository.findByNodes(focusNodeIds)
-      : await this.relationshipRepository.findAll({ status: 'active' });
+      : await this.relationshipRepository.findAll({ status: 'active' }, { limit: 10000 });
 
     console.log(`Found ${nodes.length} nodes and ${relationships.length} relationships`);
     console.log(`Node type is ${typeof nodes[0]}`);

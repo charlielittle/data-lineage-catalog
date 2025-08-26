@@ -1,6 +1,6 @@
 {
   "name": "data-lineage-catalog",
-  "version": "2.0.0",
+  "version": "2.0.009",
   "description": "Enterprise Data Lineage Catalog with MongoDB backend",
   "main": "src/app/Application.js",
   "scripts": {
@@ -16,7 +16,11 @@
     "migrate": "node src/cli/index.js init",
     "seed": "node src/cli/index.js load-data --clear",
     "quality-report": "node src/cli/index.js quality-report",
-    "validate-schema": "node src/cli/index.js validate-schema"
+    "validate-schema": "node src/cli/index.js validate-schema",
+    "generate-large": "node src/cli/index.js generate-large-scale",
+    "generate-enterprise": "node src/cli/index.js generate-large-scale 500000 --clear",
+    "performance-test": "node src/cli/index.js performance-test",
+    "generate-demo": "node src/cli/index.js generate-large-scale 25000 --clear"
   },
   "keywords": [
     "data-lineage",
@@ -25,7 +29,7 @@
     "data-governance",
     "metadata-management"
   ],
-  "author": "Data Engineering Team",
+  "author": "Charlie Little",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
@@ -47,10 +51,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/data-lineage-catalog.git"
+    "url": "https://github.com/charlielittle/data-lineage-catalog.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/data-lineage-catalog/issues"
+    "url": "https://github.com/charlielittle/data-lineage-catalog/issues"
   },
-  "homepage": "https://github.com/your-org/data-lineage-catalog#readme"
+  "homepage": "https://github.com/charlielittle/data-lineage-catalog#readme"
 }

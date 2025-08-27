@@ -6,7 +6,7 @@ class SchemaManager {
       nodes: {
         name: 'nodes',
         indexes: [
-          { fields: { nodeId: 1 }, options: { unique: true } },
+          { fields: { nodeId: 1 } },
           { fields: { nodeType: 1, status: 1 } },
           { fields: { system: 1, status: 1 } },
           { fields: { 'businessMetadata.domain': 1, status: 1 } },
@@ -17,7 +17,7 @@ class SchemaManager {
       relationships: {
         name: 'relationships',
         indexes: [
-          { fields: { relationshipId: 1 }, options: { unique: true } },
+          { fields: { relationshipId: 1 } },
           { fields: { sourceNodeId: 1, status: 1 } },
           { fields: { targetNodeId: 1, status: 1 } },
           { fields: { relationshipType: 1, status: 1 } },

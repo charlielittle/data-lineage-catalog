@@ -74,8 +74,8 @@ class RelationshipRepository extends BaseRepository {
         }
       }
     ];
-    console.log( `upstream pipeline: ${JSON.stringify(pipeline)}`);
-    console.log(`Finding upstream relationships for node ${nodeId} with max depth ${maxDepth}`);
+    // console.log( `upstream pipeline: ${JSON.stringify(pipeline)}`);
+    // console.log(`Finding upstream relationships for node ${nodeId} with max depth ${maxDepth}`);
     return await this.aggregate(pipeline);
   }
 
@@ -95,8 +95,8 @@ class RelationshipRepository extends BaseRepository {
         }
       }
     ];
-    console.log( `downstream pipeline: ${JSON.stringify(pipeline)}`);
-    console.log(`Finding downstream relationships for node ${nodeId} with max depth ${maxDepth}`);
+    // console.log( `downstream pipeline: ${JSON.stringify(pipeline)}`);
+    // console.log(`Finding downstream relationships for node ${nodeId} with max depth ${maxDepth}`);
     return await this.aggregate(pipeline);
   }
 

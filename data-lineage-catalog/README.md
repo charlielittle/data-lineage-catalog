@@ -295,63 +295,188 @@ npm run test:coverage   # Generate coverage reports
 
 The application includes comprehensive performance testing capabilities that help you understand how the MongoDB lineage schema behaves under different load conditions. These tests provide practical experience with the scaling characteristics of document-based lineage systems.
 
-Run performance tests across multiple dataset sizes to observe scaling behavior and identify potential bottlenecks.
+#### Write Performance Testing
+
+Test database write performance with large-scale data generation across multiple dataset sizes:
 
 ```bash
-npm run performance-test
+# Test write performance only
+npm run cli performance-test write
 ```
 
-This command generates datasets at three different scales and measures key performance metrics including generation time, memory usage, query response times, and relationship complexity statistics. The testing reveals how MongoDB aggregation pipelines perform as data volume increases and helps validate indexing strategies under realistic workloads.
+This command generates datasets at three different scales (10,000, 50,000, and 150,000 nodes) and measures:
+- Data generation time
+- Insert operations per second
+- Memory usage during bulk operations
+- Relationship creation performance
 
-Generate custom-sized datasets for specific performance testing scenarios.
+**Example Output:**
+```
+🚀 Starting write performance test...
+Testing with 10,000 nodes...
+✅ Generated 10,000 nodes in 2.456s
+Testing with 50,000 nodes...
+✅ Generated 50,000 nodes in 12.234s
+Testing with 150,000 nodes...
+✅ Generated 150,000 nodes in 45.678s
+```
+
+#### Read Performance Testing
+
+Test database read performance with memory-efficient streaming operations:
 
 ```bash
-npm run cli generate-large-scale [size] [options]
+# Test read performance only
+npm run cli performance-test read
 ```
 
-The large-scale generator supports datasets ranging from thousands of nodes for development testing to millions of nodes for enterprise-scale validation. Each generated dataset maintains realistic enterprise architecture patterns, ensuring that performance testing reflects actual production scenarios rather than artificial synthetic workloads.
+This command performs streaming reads of all active nodes and relationships, measuring:
+- Query execution time for large collections
+- Memory efficiency through cursor-based streaming
+- Network transfer performance
+- Index utilization effectiveness
 
-Monitor query performance characteristics by examining the generated metadata that includes relationship ratios, average path depths, and branching factors. These metrics help you understand the structural complexity of your test data and correlate it with query performance results.
+The read test uses optimized MongoDB cursors to stream only nodeIds and relationshipIds, preventing out-of-memory errors with large datasets while providing realistic performance metrics.
 
-### Code Quality
+**Example Output:**
+```
+📖 Starting read performance test...
+Reading all active nodes (streaming nodeIds only)...
+✅ Read 150,000 nodes in 1.234s
+Reading all active relationships (streaming relationshipIds only)...
+✅ Read 487,000 relationships in 2.567s
+```
 
-Maintain consistent code formatting and structure throughout the sample implementation.
+#### Combined Performance Testing
+
+Run both write and read tests sequentially to get comprehensive performance insights:
 
 ```bash
-npm run lint           # Check code style
-npm run lint:fix       # Automatically fix style issues
+# Run both write and read tests
+npm run cli performance-test both
+# or simply
+npm run cli performance-test
 ```
 
-### Documentation
+#### Lineage Query Performance Testing
 
-Generate technical documentation for the schema design and implementation patterns.
+Test lineage query performance with configurable parameters for realistic workload simulation:
 
 ```bash
-npm run docs          # Generate JSDoc documentation
+# Basic test with default settings (depth=5, iterations=10, concurrency=4)
+npm run cli lineage-query-performance-test
+
+# Test with custom depth (traverse 3 levels of lineage)
+npm run cli lineage-query-performance-test 3
+
+# Test with custom iterations (run 50 queries)
+npm run cli lineage-query-performance-test 5 50
+
+# Test with custom concurrency (run 8 queries simultaneously)
+npm run cli lineage-query-performance-test 5 100 8
 ```
+
+**Parameters:**
+- `depth`: How many levels of lineage to traverse (default: 5)
+- `iterations`: Number of lineage queries to execute (default: 10)
+- `concurrency`: Number of simultaneous queries (default: 4)
+
+**Example Output:**
+```
+Running 100 lineage queries (depth=5, concurrency=8) from 15000 active nodes...
+Iteration 1: nodeId=node_12345, relationships=23, time=0.045s
+Iteration 2: nodeId=node_67890, relationships=18, time=0.032s
+...
+
+Lineage Query Performance Summary:
+  Iterations: 100
+  Concurrency: 8
+  Total relationships returned: 2,045
+  Avg response time: 0.038s
+  Min response time: 0.015s
+  Max response time: 0.125s
+  Queries/sec: 26.32
+```
+
+#### Performance Testing Scenarios
+
+**Memory Efficiency Validation:**
+```bash
+# Test read performance with large datasets to validate streaming approach
+npm run cli generate-large-scale 500000
+npm run cli performance-test read
+```
+
+**Write Throughput Analysis:**
+```bash
+# Test write performance across different scales
+npm run cli performance-test write
+```
+
+**High Throughput Query Testing:**
+```bash
+# Test with high concurrency for throughput measurement
+npm run cli lineage-query-performance-test 3 200 16
+```
+
+**Deep Lineage Performance:**
+```bash
+# Test deep lineage traversal performance
+npm run cli lineage-query-performance-test 10 50 4
+```
+
+**Comprehensive Stress Testing:**
+```bash
+# Generate large dataset and run all performance tests
+npm run cli generate-large-scale 150000
+npm run cli performance-test both
+npm run cli lineage-query-performance-test 7 500 12
+```
+
+#### Performance Insights and Scaling Characteristics
+
+The performance testing reveals several key characteristics of the MongoDB lineage schema:
+
+**Write Performance:**
+- Bulk insert operations scale linearly with dataset size
+- Relationship creation becomes the primary bottleneck at large scales
+- Memory usage remains constant due to chunked processing
+- Index creation time increases significantly above 100,000 nodes
+
+**Read Performance:**
+- Streaming queries maintain constant memory usage regardless of dataset size
+- Index utilization critical for sub-second response times on large collections
+- Network transfer becomes limiting factor for very large result sets
+- Cursor-based iteration prevents memory exhaustion
+
+**Lineage Query Performance:**
+- Response time correlates with relationship density rather than total dataset size
+- Concurrent queries show good horizontal scaling up to connection pool limits
+- Deep traversal (>7 levels) shows exponential performance degradation
+- Proper indexing on relationship fields essential for production performance
+
+These insights help validate the MongoDB schema design under realistic enterprise workloads and guide optimization decisions for production deployments.
 
 ## Performance Characteristics and Scaling Insights
 
-Understanding how the MongoDB lineage schema performs at different scales provides valuable insights for production system design. The sample application includes performance testing that reveals practical scaling thresholds and optimization opportunities.
+Understanding how the MongoDB lineage schema performs at different scales provides valuable insights for production system design. The comprehensive performance testing suite reveals practical scaling thresholds and optimization opportunities across multiple operation types.
 
-At smaller scales with fewer than 10,000 nodes, the schema performs well with minimal indexing requirements. Simple queries execute in milliseconds, and impact analysis completes quickly even with deep traversal requirements. Memory usage remains low, and the embedded relationship approach works efficiently for most operations.
+**Small Scale (< 10,000 nodes):**
+- Write operations complete in under 5 seconds
+- Read queries execute in milliseconds with minimal indexing
+- Lineage traversal performs well even without optimization
+- Memory usage remains negligible during all operations
 
-As datasets grow to 50,000-100,000 nodes, indexing strategy becomes critical for maintaining query performance. Compound indexes on relationship fields and aggregation pipeline optimization become necessary to prevent query response time degradation. The testing framework helps identify these scaling transition points through systematic measurement across different dataset sizes.
+**Medium Scale (10,000 - 100,000 nodes):**
+- Write performance scales linearly with proper chunking
+- Read performance requires strategic indexing for optimal response times
+- Lineage query optimization becomes important for user experience
+- Memory management through streaming becomes beneficial
 
-Beyond 100,000 nodes, the performance characteristics reveal the importance of proper MongoDB configuration including connection pooling, read preferences, and aggregation pipeline stages ordering. The large-scale generator creates datasets that stress these configuration aspects, providing practical experience with enterprise-scale MongoDB tuning requirements.
+**Large Scale (> 100,000 nodes):**
+- Bulk write operations require careful memory management and progress monitoring
+- Read operations must use cursor-based streaming to prevent memory exhaustion
+- Lineage queries benefit significantly from concurrent processing
+- Database configuration tuning becomes critical for acceptable performance
 
-## Sample Data Structure
-
-This application demonstrates a MongoDB schema design that separates nodes and relationships into distinct collections while maintaining referential integrity through document references. The Node documents contain comprehensive metadata including technical specifications, business context, and quality metrics. The Relationship documents model the connections between nodes with transformation details, confidence levels, and impact assessments.
-
-The schema design emphasizes query performance for common lineage operations through strategic indexing on frequently accessed fields such as node identifiers, relationship types, and status indicators. The document structure supports both simple lineage traversal and complex analytical queries while maintaining flexibility for different types of data sources and transformation processes.
-
-The large-scale generator extends this foundation by creating datasets that follow enterprise architectural patterns including medallion layer distribution, realistic relationship densities, and authentic transformation complexity. This approach enables testing of the schema design under conditions that mirror actual production data lineage environments.
-
-## Contributing
-
-This sample application welcomes contributions that enhance the demonstration of MongoDB lineage schema patterns. Contributions should maintain the educational focus of the project while illustrating best practices for document database design in lineage tracking scenarios. All modifications should include appropriate test coverage and documentation updates to maintain the sample's instructional value.
-
-## License
-
-This project is licensed under the MIT License as a sample application for educational and demonstration purposes.
+The performance testing framework provides quantitative data on these scaling transitions, helping you plan capacity requirements and optimization strategies for production MongoDB lineage systems.

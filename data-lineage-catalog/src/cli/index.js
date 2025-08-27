@@ -19,7 +19,11 @@ class CLI {
     const lineageService = this.app.getService('lineageService');
 
     // Get all nodeIds
+    let loadIdsStart = Date.now();
+    console.log( `Loading node IDs...`);
     const nodeIds = await nodeRepository.findAll({ status: 'active' }, { onlyIds: true });
+    let loadIdsDelta = Date.now() - loadIdsStart;
+    console.log(`Loaded node IDs in ${(loadIdsDelta) / 1000}s`);
     if (nodeIds.length === 0) {
       console.log('No nodes found for lineage query test.');
       return;
@@ -54,10 +58,9 @@ class CLI {
     // Run queries in batches for concurrency
     let completed = 0;
     let batch = [];
-    let total_tests = iterations * concurrency // iterations per task
-    while (completed < total_tests ) {
+    while (completed < iterations) {
       batch = [];
-      for (let j = 0; j < concurrency && completed + j < total_tests; j++) {
+      for (let j = 0; j < concurrency && completed + j < iterations; j++) {
         batch.push(runQuery(completed + j));
       }
       const results = await Promise.all(batch);
@@ -68,8 +71,8 @@ class CLI {
     }
 
     const testEnd = Date.now();
-    const avgTime = totalTime / total_tests;
-    const queriesPerSec = total_tests / ((testEnd - testStart) / 1000);
+    const avgTime = totalTime / iterations;
+    const queriesPerSec = iterations / ((testEnd - testStart) / 1000);
     console.log('\nLineage Query Performance Summary:');
     console.log(`  Iterations: ${iterations}`);
     console.log(`  Concurrency: ${concurrency}`);

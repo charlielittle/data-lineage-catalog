@@ -13,7 +13,11 @@ class NodeRepository extends BaseRepository {
     if (options.limit) {
       limit = options.limit;
     }
-    const cursor = this.collection.find(filter).limit(limit);
+    let projection = {};
+    if( options.onlyIds ) {
+      projection = { _id: 0, nodeId: 1 };
+    }
+    const cursor = this.collection.find(filter, projection).limit(limit);
     if (options.onlyIds) {
       const ids = [];
       for await (const doc of cursor) {
